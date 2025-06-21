@@ -120,6 +120,9 @@ public:
         Eigen::Vector3d axis = normal.cross(z_axis);
         double angle = acos(normal.dot(z_axis));
 
+        // normal.cross(z_axis)叉乘得到平面向量 axis
+        // normal.dot(z_axis) 得到z轴与法向量的夹角余弦 angle
+        // 那么需要平面绕 axis 旋转 angle则将平面对齐到z=0平面
         Eigen::AngleAxisd rotation(angle, axis);
         Eigen::Matrix3d R = rotation.toRotationMatrix();
 
@@ -128,7 +131,7 @@ public:
         int cnt = 0;
         for (const auto& pt : *plane_cloud_) {
             Eigen::Vector3d point(pt.x, pt.y, pt.z);
-            Eigen::Vector3d aligned_point = R * point;
+            Eigen::Vector3d aligned_point = R * point; // TODO: 对齐到 Z=0 平面所以是左乘?
             aligned_cloud_->push_back(pcl::PointXYZ(aligned_point.x(), aligned_point.y(), 0.0));
             average_z += aligned_point.z();
             cnt++;

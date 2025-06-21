@@ -145,6 +145,7 @@ class QRDetect
         }
       }
 
+      // marker 排列顺序为从左上角顺时针开始
       std::vector<int> boardIds{1, 2, 4, 3};  // IDs order as explained above
       cv::Ptr<cv::aruco::Board> board =
           cv::aruco::Board::create(boardCorners, dictionary_, boardIds);
@@ -179,6 +180,8 @@ class QRDetect
         // Estimate 3D position of the markers
         vector<Vec3d> rvecs, tvecs;
         Vec3f rvec_sin, rvec_cos;
+        // 通过Marker检测来获取相机pose
+        // aurco上的makers相对于相机的旋转和平移
         cv::aruco::estimatePoseSingleMarkers(corners, marker_size_, cameraMatrix_,
                                             distCoeffs_, rvecs, tvecs);
 
@@ -258,7 +261,7 @@ class QRDetect
           center3d.y = mat_qr.at<float>(1, 0);
           center3d.z = mat_qr.at<float>(2, 0);
 
-          // Draw center (DEBUG)
+          // Draw center (DEBUG) 投影到像素坐标系
           cv::Point2f uv;
           uv = projectPointDist(center3d, cameraMatrix_, distCoeffs_);
           circle(imageCopy_, uv, 5, Scalar(0, 255, 0), -1);

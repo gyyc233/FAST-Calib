@@ -8,6 +8,7 @@ which is included as part of this source code package.
 #include "qr_detect.hpp"
 #include "lidar_detect.hpp"
 #include "data_preprocess.hpp"
+#include <iostream>
 
 int main(int argc, char **argv) 
 {
@@ -32,26 +33,33 @@ int main(int argc, char **argv)
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_input = dataPreprocessPtr->cloud_input_;
     
     // 检测 QR 码
+    std::cout<<"qr_center_cloud"<<std::endl;
     PointCloud<PointXYZ>::Ptr qr_center_cloud(new PointCloud<PointXYZ>);
     qr_center_cloud->reserve(4);
     qrDetectPtr->detect_qr(img_input, qr_center_cloud);
 
     // 检测 LiDAR 数据
+    std::cout<<"lidar_center_cloud"<<std::endl;
     PointCloud<PointXYZ>::Ptr lidar_center_cloud(new PointCloud<PointXYZ>);
     lidar_center_cloud->reserve(4);
     lidarDetectPtr->detect_lidar(cloud_input, lidar_center_cloud);
 
-    // 对 QR 和 LiDAR 检测到的圆心进行排序
+    std::cout<<"sort circle of QR and lidar"<<std::endl;
+    // 对 QR 和 LiDAR 检测到的4个圆心进行排序
+    // 1...2
+    // 4...3
     PointCloud<PointXYZ>::Ptr qr_centers(new PointCloud<PointXYZ>);
     PointCloud<PointXYZ>::Ptr lidar_centers(new PointCloud<PointXYZ>);
     sortPatternCenters(qr_center_cloud, qr_centers, "camera");
     sortPatternCenters(lidar_center_cloud, lidar_centers, "lidar");
 
+    std::cout<<"estimator transformation"<<std::endl;
     // 计算外参
     Eigen::Matrix4f transformation;
     pcl::registration::TransformationEstimationSVD<pcl::PointXYZ, pcl::PointXYZ> svd;
     svd.estimateRigidTransformation(*lidar_centers, *qr_centers, transformation);
 
+    std::cout<<"aligned_lidar_centers"<<std::endl;
     // 将 LiDAR 点云转换到 QR 码坐标系
     pcl::PointCloud<pcl::PointXYZ>::Ptr aligned_lidar_centers(new pcl::PointCloud<pcl::PointXYZ>);
     aligned_lidar_centers->reserve(lidar_centers->size());
